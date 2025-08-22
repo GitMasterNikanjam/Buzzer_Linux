@@ -1,63 +1,62 @@
-#ifndef _BUZZER_H_
-#define _BUZZER_H_
+#pragma once
 
-    #include <iostream>
-    #include <bcm2835.h>
+// #############################################################################
+// Include libraries:
 
-    // Active buzzer object.
-    class Buzzer
-    {
-        public:
+#include <cstdint>
+#include <string>
+#include <thread>
+#include <chrono>
+#include "../AUXIO_Linux/AUXIO.h" // expects AUXO (output) in your AUXIO library
 
-            std::string errorMessage;
+// ############################################################################
+// Buzzer class:
 
-            /*
-                Buzzer object constructor. Set Buzzer pin and its active low/high mode. Not apply setting.
-                Hint: begin() method needs after this for apply setting on hardware.
-                mode: active low/high mode. Actice low:0, Active high:1 
-            */
-            Buzzer(uint8_t pin, uint8_t mode); 
+/**
+* @brief Active buzzer driver using AUXIO (libgpiod backend).
+*
+* Keeps original semantics: constructor takes (pin, mode) where mode expresses
+* the active level: 0 = active-low, 1 = active-high. Internally maps to
+* output levels through AUXO.
+*/
+class Buzzer 
+{
+    public:
+        std::string errorMessage; //!< Last error, if any
 
-            /*
-                Apply setting on hardware. Start Buzzer action.
-                @return true if successed.
-            */
-            bool begin(void);
+        /**
+        * @param pin GPIO line offset
+        * @param mode Active level: 0=active-low, 1=active-high
+        */
+        Buzzer(uint8_t pin, uint8_t mode);
 
-            /*
-                Clean setting on hardware. Stop  Buzzer action. 
-            */
-            void clean(void);
+        /** Configure the GPIO as output and drive the buzzer off. */
+        bool begin();
 
-            /*
-                Alaram for warning type 1.
-                Hint: it excutes in blocking mode.
-            */
-            void alarmWarning_1(void);
+        /** Release the GPIO line. */
+        void clean();
 
-            /*
-                Alarm for initialization actions.
-                Hint: it excutes in blocking mode.
-            */
-            void alarmInit(void);
+        /** Warning pattern #1: 5 short beeps (blocking). */
+        void alarmWarning_1();
 
-            /*
-                Alarm for exite/stop actions.
-                Hint: it excutes in blocking mode.
-            */
-            void alarmExit(void);
+        /** Init chirp: one short beep (blocking). */
+        void alarmInit();
 
-        private:
+        /** Exit pattern: two quick beeps (blocking). */
+        void alarmExit();
 
-            // GPIO pin number
-            uint8_t _pin;
-            
-            // Active low/high mode. Actice low:0, Active high:1 
-            uint8_t _mode;
+        /** Manually set buzzer on/off. */
+        inline void on() { _write(true); }
+        inline void off() { _write(false); }
 
-            // Digital value for buzzer turn on state.
-            uint8_t _on;
+    private:
+        uint8_t _pin {0};
+        uint8_t _mode {1}; // 0=active-low, 1=active-high
+        uint8_t _onLevel {1}; // logical output level that turns the buzzer on
 
-    };
+        AUXO _auxo; // output helper from AUXIO
 
-#endif  // _BUZZER_H_
+        // Convert logical on/off to physical level and write
+        void _write(bool on);
+};
+
