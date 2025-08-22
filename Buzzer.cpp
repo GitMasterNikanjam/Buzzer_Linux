@@ -17,16 +17,10 @@ Buzzer::Buzzer(uint8_t pin, uint8_t mode)
 
 bool Buzzer::begin()
 {
-    if (_pin > 30) 
-    {
-        errorMessage = "Error Buzzer object. pin configuration is in wrong range.";
-        return false;
-    }
-
     // Initialize as output and ensure buzzer is off
-    if (!_auxo.beginOutput()) 
+    if (!_auxo.begin()) 
     {
-        errorMessage = "AUXO beginOutput() failed.";
+        errorMessage = "AUXO begin() failed.";
         return false;
     }
 
