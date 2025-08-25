@@ -3,7 +3,7 @@
 // #############################################################################
 // Include libraries:
 
-#include "../AUXIO_Linux/AUXIO.h" // expects AUXO (output) in your AUXIO library
+#include "../AUXIO_Linux/AUXIO.h" // AUXIO is based on gpiod library.
 #include <cstdint>
 #include <string>
 #include <thread>
