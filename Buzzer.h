@@ -3,11 +3,11 @@
 // #############################################################################
 // Include libraries:
 
+#include "../AUXIO_Linux/AUXIO.h" // expects AUXO (output) in your AUXIO library
 #include <cstdint>
 #include <string>
 #include <thread>
 #include <chrono>
-#include "../AUXIO_Linux/AUXIO.h" // expects AUXO (output) in your AUXIO library
 
 // ############################################################################
 // Buzzer class:
@@ -46,12 +46,15 @@ class Buzzer
         /**
          * @brief Construct a new Buzzer object.
          *
-         * @param pin  GPIO line offset (as used by AUXIO).
-         * @param mode Active level: 
-         * - 0 = active-low (buzzer turns on when GPIO is driven low)  
-         * - 1 = active-high (buzzer turns on when GPIO is driven high)
+         * @param gpiodChip_path Path to the GPIO chip device (e.g. "/dev/gpiochip0").
+         * @param line_offset GPIO line offset number.
+         * @param mode Active level:   
+         * 
+         *  0 = active-low (buzzer turns on when GPIO is driven low)  
+         * 
+         *  1 = active-high (buzzer turns on when GPIO is driven high)
          */
-        Buzzer(uint8_t pin, uint8_t mode);
+        Buzzer(const char* gpiodChip_path, unsigned int line_offset, uint8_t mode = 1);
 
         /**
          * @brief Initialize the buzzer GPIO as an output.
@@ -101,31 +104,17 @@ class Buzzer
          *
          * Drives the GPIO to the configured "on" level, activating the buzzer.
          */
-        inline void on() { _write(true); }
+        inline void on() { _auxo.on(); }
 
         /**
          * @brief Turn the buzzer off manually.
          *
          * Drives the GPIO to the configured "off" level, deactivating the buzzer.
          */
-        inline void off() { _write(false); }
+        inline void off() { _auxo.off(); }
 
     private:
-        uint8_t _pin {0};           //!< GPIO line offset
-        uint8_t _mode {1};          //!< Active level (0 = active-low, 1 = active-high)
-        uint8_t _onLevel {1};       //!< Logical output level that turns the buzzer on
 
         AUXO _auxo;                 //!< AUXIO output helper instance
-
-        /**
-         * @brief Internal function to write logical on/off to the GPIO pin.
-         *
-         * Converts the desired logical state (on/off) into the physical 
-         * level according to the configured mode (active-low or active-high), 
-         * and drives the GPIO line.
-         *
-         * @param on true = buzzer on, false = buzzer off.
-         */
-        void _write(bool on);
 };
 
